@@ -2,20 +2,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.awt.print.*;
 
 public class RecipeApp {
     private JFrame frame;
     private JTextField nameField;
     private JTextArea ingredientField, stepsField, recipePreview;
     private JList<String> recipeList;
-    private DefaultListModel<String> recipeModel, ingredientModel;
+    private DefaultListModel<String> recipeModel;
     private ArrayList<Recipe> recipes;
 
     public RecipeApp() {
-        // Inisialisasi data
+        // Inisialisasi struktur data
         recipes = new ArrayList<>();
         recipeModel = new DefaultListModel<>();
-        ingredientModel = new DefaultListModel<>();
 
         // Setup frame utama
         frame = new JFrame("Aplikasi Resep Makanan");
@@ -26,23 +26,22 @@ public class RecipeApp {
         // Membuat TabbedPane
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Panel Input Resep
+        // Membuat panel untuk input resep dan daftar resep
         JPanel inputPanel = createInputPanel();
-
-        // Panel Daftar Resep
         JPanel listPanel = createListPanel();
 
-        // Tambahkan panel ke tabbedPane
+        // Menambahkan panel ke tabbedPane
         tabbedPane.addTab("Input Resep", inputPanel);
         tabbedPane.addTab("Daftar Resep", listPanel);
 
-        // Panel Tombol Aksi
+        // Membuat panel tombol aksi
         JPanel buttonPanel = createButtonPanel();
 
-        // Tambahkan ke frame
+        // Menambahkan tabbedPane dan panel tombol ke frame
         frame.add(tabbedPane, BorderLayout.CENTER);
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
+        // Menampilkan frame
         frame.setVisible(true);
     }
 
@@ -52,25 +51,22 @@ public class RecipeApp {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Input Nama Resep
-JLabel nameLabel = new JLabel("Nama Resep:");
-nameField = new JTextField(30); // Panjang kolom teks sekitar 15 karakter
-nameField.setPreferredSize(new Dimension(400, 35)); // Lebar 200px, tinggi 25px
-nameField.setMaximumSize(new Dimension(400, 35)); // Pastikan ukurannya tidak berubah
-inputPanel.add(nameLabel);
-inputPanel.add(nameField);
-
+        JLabel nameLabel = new JLabel("Nama Resep:");
+        nameField = new JTextField(30);
+        nameField.setPreferredSize(new Dimension(400, 35));
+        nameField.setMaximumSize(new Dimension(400, 35));
+        inputPanel.add(nameLabel);
+        inputPanel.add(nameField);
 
         // Input Bahan-Bahan
         inputPanel.add(new JLabel("Bahan-Bahan:"));
         ingredientField = createTextArea();
         inputPanel.add(new JScrollPane(ingredientField));
-        inputPanel.add(Box.createVerticalStrut(10));
 
         // Input Langkah-Langkah
         inputPanel.add(new JLabel("Langkah-Langkah:"));
         stepsField = createTextArea();
         inputPanel.add(new JScrollPane(stepsField));
-        inputPanel.add(Box.createVerticalStrut(10));
 
         // Tombol Simpan Resep
         JButton saveRecipeButton = new JButton("Simpan Resep");
@@ -83,7 +79,7 @@ inputPanel.add(nameField);
     private JPanel createListPanel() {
         JPanel listPanel = new JPanel(new BorderLayout());
 
-        // List Daftar Resep
+        // Daftar Resep
         recipeList = new JList<>(recipeModel);
         recipeList.addListSelectionListener(e -> showRecipePreview());
         listPanel.add(new JScrollPane(recipeList), BorderLayout.CENTER);
@@ -102,14 +98,17 @@ inputPanel.add(nameField);
     private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
+        // Tombol Edit
         JButton editButton = new JButton("Ubah Resep");
         editButton.addActionListener(e -> editRecipe());
         buttonPanel.add(editButton);
 
+        // Tombol Hapus
         JButton deleteButton = new JButton("Hapus Resep");
         deleteButton.addActionListener(e -> deleteRecipe());
         buttonPanel.add(deleteButton);
 
+        // Tombol Print
         JButton printButton = new JButton("Cetak Resep");
         printButton.addActionListener(e -> printRecipe());
         buttonPanel.add(printButton);
@@ -126,14 +125,17 @@ inputPanel.add(nameField);
 
     private void addRecipe() {
         String name = nameField.getText();
+        String ingredients = ingredientField.getText();
         String steps = stepsField.getText();
 
-        if (name.isEmpty() || steps.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Nama dan langkah-langkah harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
+        // Memeriksa jika ada kolom input yang kosong
+        if (name.isEmpty() || ingredients.isEmpty() || steps.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Nama, bahan-bahan, dan langkah-langkah harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Recipe recipe = new Recipe(name, steps);
+        // Menambahkan resep ke dalam daftar
+        Recipe recipe = new Recipe(name, ingredients, steps);
         recipes.add(recipe);
         recipeModel.addElement(name);
 
@@ -148,10 +150,35 @@ inputPanel.add(nameField);
         }
 
         Recipe recipe = recipes.get(selectedIndex);
-        recipe.setName(nameField.getText());
-        recipe.setSteps(stepsField.getText());
-        recipeModel.set(selectedIndex, recipe.getName());
-        clearFields();
+        nameField.setText(recipe.getName());
+        ingredientField.setText(recipe.getIngredients());
+        stepsField.setText(recipe.getSteps());
+
+        int option = JOptionPane.showOptionDialog(frame, new Object[]{
+            new JLabel("Nama Resep:"),
+            nameField,
+            new JLabel("Bahan-Bahan:"),
+            ingredientField,
+            new JLabel("Langkah-Langkah:"),
+            stepsField
+        }, "Simpan Perubahan Resep", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+
+        if (option == JOptionPane.OK_OPTION) {
+            String name = nameField.getText();
+            String ingredients = ingredientField.getText();
+            String steps = stepsField.getText();
+
+            if (name.isEmpty() || ingredients.isEmpty() || steps.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Nama, bahan-bahan, dan langkah-langkah harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            recipe.setName(name);
+            recipe.setIngredients(ingredients);
+            recipe.setSteps(steps);
+            recipeModel.set(selectedIndex, recipe.getName());
+            clearFields();
+        }
     }
 
     private void deleteRecipe() {
@@ -161,6 +188,7 @@ inputPanel.add(nameField);
             return;
         }
 
+        // Menghapus resep dari daftar
         recipes.remove(selectedIndex);
         recipeModel.remove(selectedIndex);
         recipePreview.setText("");
@@ -174,7 +202,32 @@ inputPanel.add(nameField);
         }
 
         Recipe recipe = recipes.get(selectedIndex);
-        JOptionPane.showMessageDialog(frame, recipe.toString(), "Cetak Resep", JOptionPane.INFORMATION_MESSAGE);
+        PrinterJob printerJob = PrinterJob.getPrinterJob();
+
+        if (printerJob.printDialog()) {
+            printerJob.setPrintable(new Printable() {
+                @Override
+                public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
+                    if (pageIndex > 0) {
+                        return Printable.NO_SUCH_PAGE;
+                    }
+
+                    String printText = recipe.toString();
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+                    g2d.setFont(new Font("Serif", Font.PLAIN, 12));
+                    g2d.drawString(printText, 100, 100);
+
+                    return Printable.PAGE_EXISTS;
+                }
+            });
+
+            try {
+                printerJob.print();
+            } catch (PrinterException e) {
+                JOptionPane.showMessageDialog(frame, "Gagal mencetak: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     private void showRecipePreview() {
@@ -189,6 +242,7 @@ inputPanel.add(nameField);
 
     private void clearFields() {
         nameField.setText("");
+        ingredientField.setText("");
         stepsField.setText("");
     }
 
@@ -198,10 +252,11 @@ inputPanel.add(nameField);
 }
 
 class Recipe {
-    private String name, steps;
+    private String name, steps, ingredients;
 
-    public Recipe(String name, String steps) {
+    public Recipe(String name, String ingredients, String steps) {
         this.name = name;
+        this.ingredients = ingredients;
         this.steps = steps;
     }
 
@@ -211,6 +266,14 @@ class Recipe {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIngredients() {
+        return ingredients;
+    }
+
+    public void setIngredients(String ingredients) {
+        this.ingredients = ingredients;
     }
 
     public String getSteps() {
@@ -223,6 +286,6 @@ class Recipe {
 
     @Override
     public String toString() {
-        return "Nama Resep: " + name + "\nLangkah-Langkah:\n" + steps;
+        return "Nama: " + name + "\nBahan-Bahan: " + ingredients + "\nLangkah-Langkah: " + steps;
     }
 }

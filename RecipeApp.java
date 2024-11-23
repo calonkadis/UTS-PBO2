@@ -4,105 +4,124 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class RecipeApp {
-    private JFrame frame;
-    private JTextField nameField, ingredientField, stepsField;
-    private JList<String> recipeList, ingredientList;
-    private DefaultListModel<String> recipeModel, ingredientModel;
-    private ArrayList<Recipe> recipes;
-    private JTextArea recipePreview;
+    private JFrame frame; // Frame utama aplikasi
+    private JTextField nameField, ingredientField, stepsField; // Input field untuk nama resep, bahan, dan langkah-langkah
+    private JList<String> recipeList, ingredientList; // List untuk menampilkan daftar resep dan bahan
+    private DefaultListModel<String> recipeModel, ingredientModel; // Model untuk data dalam list
+    private ArrayList<Recipe> recipes; // List untuk menyimpan semua resep
+    private JTextArea recipePreview; // Area untuk menampilkan detail resep yang dipilih
 
     public RecipeApp() {
+        // Inisialisasi data dan model
         recipes = new ArrayList<>();
         recipeModel = new DefaultListModel<>();
         ingredientModel = new DefaultListModel<>();
 
+        // Setup frame utama
         frame = new JFrame("Aplikasi Resep Makanan");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);
-        frame.setLayout(new BorderLayout());
+        frame.setSize(800, 600); // Ukuran frame
+        frame.setLayout(new BorderLayout()); // Layout utama menggunakan BorderLayout
 
-        // TabbedPane untuk navigasi
+        // Membuat TabbedPane untuk navigasi
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Tab Input Resep
+        // Panel untuk input resep
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS)); // Menggunakan BoxLayout
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
 
+        // Komponen input untuk nama resep
         JLabel nameLabel = new JLabel("Nama Resep:");
         nameField = new JTextField();
+        inputPanel.add(nameLabel);
+        inputPanel.add(nameField);
+
+        inputPanel.add(Box.createVerticalStrut(10)); // Spacer
+
+        // Komponen input untuk bahan-bahan
         JLabel ingredientLabel = new JLabel("Bahan-Bahan:");
         ingredientField = new JTextField();
         JButton addIngredientButton = new JButton("Tambah Bahan");
-        JLabel stepsLabel = new JLabel("Langkah-Langkah:");
-        stepsField = new JTextField();
-        JButton saveRecipeButton = new JButton("Simpan Resep");
-
-        inputPanel.add(nameLabel);
-        inputPanel.add(nameField);
-        inputPanel.add(Box.createVerticalStrut(10)); // Spacer
         inputPanel.add(ingredientLabel);
         inputPanel.add(ingredientField);
-        inputPanel.add(Box.createVerticalStrut(10));
+        inputPanel.add(Box.createVerticalStrut(10)); // Spacer
         inputPanel.add(addIngredientButton);
+
         inputPanel.add(Box.createVerticalStrut(10));
+
+        // Komponen input untuk langkah-langkah
+        JLabel stepsLabel = new JLabel("Langkah-Langkah:");
+        stepsField = new JTextField();
         inputPanel.add(stepsLabel);
         inputPanel.add(stepsField);
+
         inputPanel.add(Box.createVerticalStrut(20));
+
+        // Tombol untuk menyimpan resep
+        JButton saveRecipeButton = new JButton("Simpan Resep");
         inputPanel.add(saveRecipeButton);
 
+        // Tambahkan panel input ke tabbedPane
         tabbedPane.addTab("Input Resep", inputPanel);
 
-        // Tab Daftar Resep
+        // Panel untuk daftar resep
         JPanel listPanel = new JPanel(new BorderLayout());
-        recipeList = new JList<>(recipeModel);
+        recipeList = new JList<>(recipeModel); // List untuk daftar resep
         listPanel.add(new JScrollPane(recipeList), BorderLayout.CENTER);
 
+        // Panel untuk preview resep
         JPanel previewPanel = new JPanel(new BorderLayout());
-        recipePreview = new JTextArea();
+        recipePreview = new JTextArea(); // Area teks untuk menampilkan detail resep
         recipePreview.setEditable(false);
-        recipePreview.setLineWrap(true);
+        recipePreview.setLineWrap(true); // Membungkus teks secara otomatis
         recipePreview.setWrapStyleWord(true);
         previewPanel.add(new JLabel("Detail Resep"), BorderLayout.NORTH);
         previewPanel.add(new JScrollPane(recipePreview), BorderLayout.CENTER);
 
         listPanel.add(previewPanel, BorderLayout.EAST);
+
+        // Tambahkan panel daftar resep ke tabbedPane
         tabbedPane.addTab("Daftar Resep", listPanel);
 
-        // Button Panel
+        // Panel untuk tombol aksi
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton editButton = new JButton("Ubah Resep");
         JButton deleteButton = new JButton("Hapus Resep");
         JButton printButton = new JButton("Cetak Resep");
 
+        // Tambahkan tombol ke panel
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(printButton);
 
+        // Tambahkan tabbedPane dan panel tombol ke frame
         frame.add(tabbedPane, BorderLayout.CENTER);
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Event Listeners
-        addIngredientButton.addActionListener(e -> addIngredient());
-        saveRecipeButton.addActionListener(e -> addRecipe());
-        editButton.addActionListener(e -> editRecipe());
-        deleteButton.addActionListener(e -> deleteRecipe());
-        printButton.addActionListener(e -> printRecipe());
-        recipeList.addListSelectionListener(e -> showRecipePreview());
+        // Event listeners untuk tombol
+        addIngredientButton.addActionListener(e -> addIngredient()); // Tambah bahan
+        saveRecipeButton.addActionListener(e -> addRecipe()); // Simpan resep
+        editButton.addActionListener(e -> editRecipe()); // Ubah resep
+        deleteButton.addActionListener(e -> deleteRecipe()); // Hapus resep
+        printButton.addActionListener(e -> printRecipe()); // Cetak resep
+        recipeList.addListSelectionListener(e -> showRecipePreview()); // Tampilkan detail saat resep dipilih
 
-        frame.setVisible(true);
+        frame.setVisible(true); // Tampilkan frame
     }
 
+    // Menambahkan bahan ke daftar
     private void addIngredient() {
         String ingredient = ingredientField.getText();
         if (ingredient.isEmpty()) {
             JOptionPane.showMessageDialog(frame, "Masukkan nama bahan!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        ingredientModel.addElement(ingredient);
-        ingredientField.setText("");
+        ingredientModel.addElement(ingredient); // Tambahkan bahan ke model
+        ingredientField.setText(""); // Kosongkan input field
     }
 
+    // Menambahkan resep ke daftar
     private void addRecipe() {
         String name = nameField.getText();
         String steps = stepsField.getText();
@@ -118,12 +137,13 @@ public class RecipeApp {
         }
 
         Recipe recipe = new Recipe(name, ingredients, steps);
-        recipes.add(recipe);
-        recipeModel.addElement(name);
-        ingredientModel.clear();
-        clearFields();
+        recipes.add(recipe); // Tambahkan resep ke list
+        recipeModel.addElement(name); // Tambahkan nama resep ke model
+        ingredientModel.clear(); // Kosongkan daftar bahan
+        clearFields(); // Reset input field
     }
 
+    // Mengedit resep yang dipilih
     private void editRecipe() {
         int selectedIndex = recipeList.getSelectedIndex();
         if (selectedIndex == -1) {
@@ -141,11 +161,12 @@ public class RecipeApp {
         }
         recipe.setIngredients(ingredients);
 
-        recipeModel.set(selectedIndex, recipe.getName());
+        recipeModel.set(selectedIndex, recipe.getName()); // Perbarui nama resep di model
         ingredientModel.clear();
         clearFields();
     }
 
+    // Menghapus resep yang dipilih
     private void deleteRecipe() {
         int selectedIndex = recipeList.getSelectedIndex();
         if (selectedIndex == -1) {
@@ -153,11 +174,12 @@ public class RecipeApp {
             return;
         }
 
-        recipes.remove(selectedIndex);
-        recipeModel.remove(selectedIndex);
-        recipePreview.setText("");
+        recipes.remove(selectedIndex); // Hapus resep dari list
+        recipeModel.remove(selectedIndex); // Hapus nama resep dari model
+        recipePreview.setText(""); // Kosongkan preview
     }
 
+    // Mencetak detail resep yang dipilih
     private void printRecipe() {
         int selectedIndex = recipeList.getSelectedIndex();
         if (selectedIndex == -1) {
@@ -177,6 +199,7 @@ public class RecipeApp {
         JOptionPane.showMessageDialog(frame, recipeDetails.toString(), "Cetak Resep", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    // Menampilkan preview resep yang dipilih
     private void showRecipePreview() {
         int selectedIndex = recipeList.getSelectedIndex();
         if (selectedIndex != -1) {
@@ -194,16 +217,18 @@ public class RecipeApp {
         }
     }
 
+    // Membersihkan input field
     private void clearFields() {
         nameField.setText("");
         stepsField.setText("");
     }
 
     public static void main(String[] args) {
-        new RecipeApp();
+        new RecipeApp(); // Jalankan aplikasi
     }
 }
 
+// Class untuk menyimpan data resep
 class Recipe {
     private String name, steps;
     private ArrayList<String> ingredients;
@@ -222,19 +247,19 @@ class Recipe {
         this.name = name;
     }
 
-    public ArrayList<String> getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(ArrayList<String> ingredients) {
-        this.ingredients = ingredients;
-    }
-
     public String getSteps() {
         return steps;
     }
 
     public void setSteps(String steps) {
         this.steps = steps;
+    }
+
+    public ArrayList<String> getIngredients() {
+        return ingredients;
+    }
+
+    public void setIngredients(ArrayList<String> ingredients) {
+        this.ingredients = ingredients;
     }
 }
